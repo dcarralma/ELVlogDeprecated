@@ -1,0 +1,120 @@
+package velox;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.SWRLArgument;
+import org.semanticweb.owlapi.model.SWRLAtom;
+
+import uk.ac.ox.cs.JRDFox.model.GroundTerm;
+import uk.ac.ox.cs.JRDFox.model.Individual;
+
+public class VAtom {
+
+	private String predicate;
+	private ArrayList<String> terms;
+
+	public VAtom(OWLClass p, OWLIndividual t) {
+		this(p.toString(), t.toString());
+	}
+
+	public VAtom(OWLClass p, String t) {
+		this(p.toString(), t);
+	}
+
+	public VAtom(String p, OWLIndividual t) {
+		this(p, t.toString());
+	}
+
+	public VAtom(String p, String t) {
+		if (p.equals("owl:Thing") || p.equals("<owl:Thing>"))
+			predicate = VeloxReasoner.owlThingPred;
+		else if (p.equals("owl:Nothing") || p.equals("<owl:Nothing>"))
+			predicate = VeloxReasoner.owlNothingPred;
+		else
+			predicate = p;
+		terms = new ArrayList<String>();
+		terms.add(t);
+	}
+
+	public VAtom(OWLObjectProperty p, OWLIndividual t1, OWLIndividual t2) {
+		this(p.toString(), t1.toString(), t2.toString());
+	}
+
+	public VAtom(OWLObjectProperty p, String t1, OWLIndividual t2) {
+		this(p.toString(), t1, t2.toString());
+	}
+
+	public VAtom(OWLObjectProperty p, String t1, String t2) {
+		this(p.toString(), t1, t2);
+	}
+
+	public VAtom(String p, OWLIndividual t1, OWLIndividual t2) {
+		this(p, t1.toString(), t2.toString());
+	}
+
+	public VAtom(String p, String t1, String t2) {
+		predicate = p;
+		terms = new ArrayList<String>();
+		terms.add(t1);
+		terms.add(t2);
+	}
+
+	public VAtom(SWRLAtom safeBodyAtom, HashMap<SWRLArgument, String> safeVarToXVarMap) {
+
+		predicate = safeBodyAtom.getPredicate().toString();
+		terms = new ArrayList<String>();
+		for (SWRLArgument argument : safeBodyAtom.getAllArguments()) {
+			if (argument.toString().contains("Variable"))
+				terms.add(safeVarToXVarMap.get(argument));
+			else
+				System.out.println("WARNING!!! Argument which is not a varaible found at XAtom at XAtom: unimplemented functionality");
+		}
+
+	}
+
+	public VAtom(VAtom a) {
+		predicate = new String(a.getPredicate());
+		terms = new ArrayList<String>();
+		for (String term : a.getTerms())
+			terms.add(new String(term));
+	}
+
+	public String getPredicate() {
+		return predicate;
+	}
+
+	public ArrayList<String> getTerms() {
+		return terms;
+	}
+
+	String toOxRuleAtom() {
+		String rdFoxFormattedAtom = predicate + "(";
+		for (String term : terms)
+			rdFoxFormattedAtom += term + ", ";
+		return rdFoxFormattedAtom.substring(0, rdFoxFormattedAtom.length() - 2) + ")";
+	}
+
+	public GroundTerm[] toGroundTermFact() {
+		GroundTerm[] oxFact = new GroundTerm[3];
+		switch (terms.size()) {
+		case 1:
+			oxFact[0] = Individual.create((terms.get(0)).replace("<", "").replace(">", ""));
+			oxFact[1] = Individual.RDF_TYPE;
+			oxFact[2] = Individual.create(predicate.replace("<", "").replace(">", ""));
+			return oxFact;
+		case 2:
+			oxFact[0] = Individual.create((terms.get(0)).replace("<", "").replace(">", ""));
+			oxFact[1] = Individual.create((predicate).replace("<", "").replace(">", ""));
+			oxFact[2] = Individual.create((terms.get(1)).replace("<", "").replace(">", ""));
+			return oxFact;
+		default:
+			System.out.println(this.toString());
+			System.out.println("WARNING!!! Non-valid fact at toOxFact at OxAtom.java.");
+			return null;
+		}
+	}
+}
