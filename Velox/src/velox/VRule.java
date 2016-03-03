@@ -64,20 +64,16 @@ public class VRule {
 		return body;
 	}
 
-	public String toString() {
-		return toOxRule();
-	}
-
-	public String toOxRule() {
+	public String toOxRules() {
 
 		String ruleBody = new String("");
 		for (VAtom bodyAtom : body)
-			ruleBody += bodyAtom.toOxRuleAtom() + ", ";
+			ruleBody += bodyAtom.toOxAtom() + ", ";
 		ruleBody = ruleBody.substring(0, ruleBody.length() - 2);
 
 		String oxRule = new String("");
 		for (VAtom headAtom : head)
-			oxRule += headAtom.toOxRuleAtom() + " :-  " + ruleBody + "." + "\n";
+			oxRule += headAtom.toOxAtom() + " :-  " + ruleBody + "." + "\n";
 
 		return oxRule;
 	}

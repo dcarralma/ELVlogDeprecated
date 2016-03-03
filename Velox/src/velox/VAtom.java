@@ -31,9 +31,9 @@ public class VAtom {
 
 	public VAtom(String p, String t) {
 		if (p.equals("owl:Thing") || p.equals("<owl:Thing>"))
-			predicate = VeloxReasoner.owlThingPred;
+			predicate = SWURIs.owlThing;
 		else if (p.equals("owl:Nothing") || p.equals("<owl:Nothing>"))
-			predicate = VeloxReasoner.owlNothingPred;
+			predicate = SWURIs.owlNothing;
 		else
 			predicate = p;
 		terms = new ArrayList<String>();
@@ -64,16 +64,19 @@ public class VAtom {
 	}
 
 	public VAtom(SWRLAtom safeBodyAtom, HashMap<SWRLArgument, String> safeVarToXVarMap) {
-
 		predicate = safeBodyAtom.getPredicate().toString();
 		terms = new ArrayList<String>();
 		for (SWRLArgument argument : safeBodyAtom.getAllArguments()) {
 			if (argument.toString().contains("Variable"))
 				terms.add(safeVarToXVarMap.get(argument));
 			else
-				System.out.println("WARNING!!! Argument which is not a varaible found at XAtom at XAtom: unimplemented functionality");
+				System.out.println(
+						"WARNING!!! Argument which is not a varaible found at VAtom at VAtom: unimplemented functionality");
 		}
 
+		if (terms.size() != 1 && terms.size() != 2)
+			System.out.println(
+					"WARNING!!! Illegal VAtom instantiated by VAtom(SWRLAtom safeBodyAtom, HashMap<SWRLArgument, String> safeVarToXVarMap): invalid number of terms");
 	}
 
 	public VAtom(VAtom a) {
@@ -91,11 +94,11 @@ public class VAtom {
 		return terms;
 	}
 
-	String toOxRuleAtom() {
-		String rdFoxFormattedAtom = predicate + "(";
+	String toOxAtom() {
+		String oxFormattedAtom = predicate + "(";
 		for (String term : terms)
-			rdFoxFormattedAtom += term + ", ";
-		return rdFoxFormattedAtom.substring(0, rdFoxFormattedAtom.length() - 2) + ")";
+			oxFormattedAtom += term + ", ";
+		return oxFormattedAtom.substring(0, oxFormattedAtom.length() - 2) + ")";
 	}
 
 	public GroundTerm[] toGroundTermFact() {
