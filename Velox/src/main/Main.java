@@ -2,6 +2,7 @@ package main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -20,15 +21,20 @@ public class Main {
 
 		int threads = Integer.parseInt(arguments[0]);
 		String ontologyTBoxFilePath = arguments[1];
-		String ontologyABoxDirectoryPath = arguments[2];
+		String turtleDirPath = arguments[2];
 		String prefix = arguments[3];
+
+		ArrayList<String> turtleFileNames = new ArrayList<String>();
+		for (String turtleFileName : new File(turtleDirPath).list())
+			if (!turtleFileName.equals(".DS_Store"))
+				turtleFileNames.add(turtleDirPath + File.separator + turtleFileName);
+		File[] turtleFiles = new File[turtleFileNames.size()];
+		for (int i = 0; i < turtleFileNames.size(); i++)
+			turtleFiles[i] = new File(turtleFileNames.get(i));
 
 		long start = System.nanoTime();
 		System.out.println("  > Initializing Reasoner");
-		VeloxReasoner velox = new VeloxReasoner(ontologyTBoxFilePath, DataStore.StoreType.NarrowParallelHead, threads);
-		for (String aBoxFileName : new File(ontologyABoxDirectoryPath).list())
-			if (!aBoxFileName.equals(".DS_Store"))
-				velox.loadABoxTurtleFile(ontologyABoxDirectoryPath + File.separator + aBoxFileName);
+		VeloxReasoner velox = new VeloxReasoner(ontologyTBoxFilePath, turtleFiles, DataStore.StoreType.NarrowParallelHead, threads);
 		System.out.println("   * Files Loaded (" + velox.getTriplesCount() + "): " + ((System.nanoTime() - start) / 1000000000) + "s");
 
 		System.out.println("  > Reasoning");

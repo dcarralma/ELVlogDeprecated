@@ -19,16 +19,15 @@ public class VeloxReasoner {
 	private DataStore store;
 	private boolean satisfiable = false;
 
-	public VeloxReasoner(String ontologyFilePath, DataStore.StoreType storeType, int threads)
+	public VeloxReasoner(String ontologyFilePath, File[] turtleFiles, DataStore.StoreType storeType, int threads)
 			throws JRDFStoreException, IOException {
 
 		if (ontologyFilePath != null) {
 			try {
-				OWLOntology ontology = OWLManager.createOWLOntologyManager()
-						.loadOntologyFromOntologyDocument(new File(ontologyFilePath));
+				OWLOntology ontology = OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(new File(ontologyFilePath));
 				StoreInitializer mapper = new StoreInitializer();
 				store = mapper.initializeStore(ontology, storeType, threads);
-
+				store.importTurtleFiles(turtleFiles);
 			} catch (OWLOntologyCreationException e) {
 				System.out.println(" > WARNING!!! OWLAPI Error loading the ontology: " + ontologyFilePath);
 				e.printStackTrace();
@@ -38,18 +37,13 @@ public class VeloxReasoner {
 		}
 	}
 
-	public void loadABoxTurtleFile(String ontologyABoxFilePath) throws JRDFStoreException {
-		store.importTurtleFile(new File(ontologyABoxFilePath));
-	}
-
 	public void applyReasoning() throws JRDFStoreException {
 		store.applyReasoning();
 	}
 
 	public void decideSatisfiability() throws JRDFStoreException {
 		store.applyReasoning();
-		TupleIterator tupleIterator = getIterator(
-				"SELECT DISTINCT ?x WHERE{ ?x " + Individual.RDF_TYPE + " " + SWURIs.owlNothing + " } ");
+		TupleIterator tupleIterator = getIterator("SELECT DISTINCT ?x WHERE{ ?x " + Individual.RDF_TYPE + " " + SWURIs.owlNothing + " } ");
 		if (tupleIterator.open() == 0)
 			satisfiable = true;
 		else
