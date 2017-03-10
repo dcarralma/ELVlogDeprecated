@@ -25,8 +25,8 @@ public class VeloxReasoner {
 		if (ontologyFilePath != null) {
 			try {
 				OWLOntology ontology = OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(new File(ontologyFilePath));
-				StoreInitializer mapper = new StoreInitializer();
-				store = mapper.initializeStore(ontology, storeType, threads);
+				StoreInitializer storeInitalizer = new StoreInitializer();
+				store = storeInitalizer.initializeStore(ontology, storeType, threads);
 				store.importTurtleFiles(turtleFiles);
 			} catch (OWLOntologyCreationException e) {
 				System.out.println(" > WARNING!!! OWLAPI Error loading the ontology: " + ontologyFilePath);

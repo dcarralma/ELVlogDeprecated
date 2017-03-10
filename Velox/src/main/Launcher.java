@@ -12,10 +12,9 @@ import uk.ac.ox.cs.JRDFox.store.DataStore;
 import uk.ac.ox.cs.JRDFox.store.TupleIterator;
 import velox.VeloxReasoner;
 
-public class Main {
+public class Launcher {
 
-	public static void main(String[] arguments)
-			throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, JRDFStoreException {
+	public static void main(String[] arguments) throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, JRDFStoreException {
 
 		System.out.println("Arguments: " + arguments[0] + " " + arguments[1] + " " + arguments[2] + " " + arguments[3] + "\n");
 
@@ -26,7 +25,7 @@ public class Main {
 
 		ArrayList<String> turtleFileNames = new ArrayList<String>();
 		for (String turtleFileName : new File(turtleDirPath).list())
-			if (!turtleFileName.equals(".DS_Store"))
+			if (turtleFileName.endsWith(".ttl"))
 				turtleFileNames.add(turtleDirPath + File.separator + turtleFileName);
 		File[] turtleFiles = new File[turtleFileNames.size()];
 		for (int i = 0; i < turtleFileNames.size(); i++)
@@ -41,19 +40,17 @@ public class Main {
 		start = System.nanoTime();
 		velox.decideSatisfiability();
 		System.out.println("   * Satisfiable ontology: " + velox.isSatisfiable());
-		System.out.println(
-				"   * Materialization Complete (" + velox.getTriplesCount() + "): " + ((System.nanoTime() - start) / 1000000000) + "s");
+		System.out.println("   * Materialization Complete (" + velox.getTriplesCount() + "): " + ((System.nanoTime() - start) / 1000000000) + "s");
 
 		String rdfType = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
-		System.out.println(
-				"  > Query Results: " + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query1> } "))
-						+ " / " + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query2> } ")) + " / "
-						+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query3> } ")) + " / "
-						+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query4> } ")) + " / "
-						+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query5> } ")) + " / "
-						+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query6> } ")) + " / "
-						+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query7> } ")) + " / "
-						+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query8> } ")));
+		System.out.println("  > Query Results: " + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query1> } ")) + " / "
+			+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query2> } ")) + " / "
+			+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query3> } ")) + " / "
+			+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query4> } ")) + " / "
+			+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query5> } ")) + " / "
+			+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query6> } ")) + " / "
+			+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query7> } ")) + " / "
+			+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query8> } ")));
 
 		System.out.println("\n");
 	}
