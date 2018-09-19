@@ -41,7 +41,7 @@ import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLRule;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectSomeValuesFromImpl;
-import uk.ac.ox.cs.JRDFox.JRDFStoreException;
+import uk.ac.ox.cs.JRDFox.JRDFoxException;
 import uk.ac.ox.cs.JRDFox.store.DataStore;
 
 public class StoreInitializer {
@@ -56,7 +56,7 @@ public class StoreInitializer {
 	private static String vY = "?VY";
 	private static String vZ = "?VZ";
 
-	protected StoreInitializer() throws JRDFStoreException {
+	protected StoreInitializer() {
 		freshVarCounter = 0;
 		freshConstCounter = 0;
 		subRoleSelfRules = new HashSet<String>();
@@ -64,7 +64,7 @@ public class StoreInitializer {
 		validOntology = true;
 	}
 
-	protected DataStore initializeStore(OWLOntology ontology, DataStore.StoreType storeType, int threads) throws JRDFStoreException {
+	protected DataStore initializeStore(OWLOntology ontology, DataStore.StoreType storeType, int threads) throws JRDFoxException {
 
 		DataStore store = new DataStore(storeType);
 		store.setNumberOfThreads(threads);
@@ -73,8 +73,8 @@ public class StoreInitializer {
 		ontology.axioms().parallel().forEach(axiom -> {
 			try {
 				transformAxiomToRule(store, axiom);
-			} catch (JRDFStoreException e) {
-				System.out.println("WARNING!!! Exception while translating axiom: " + axiom);
+			} catch (JRDFoxException e) {
+				System.out.println("Exception while transforming axiom: " + axiom);
 				e.printStackTrace();
 			}
 		});
@@ -82,12 +82,12 @@ public class StoreInitializer {
 		// Adding self rules
 		if (containsSelf) {
 			for (OWLObjectProperty role : ontology.objectPropertiesInSignature().collect(Collectors.toSet())) {
-				store.importRules(new VRule(new VAtom(roleToRoleSelfConcept(role), vX), new VAtom(role, vX, vX), new VAtom(SWURIs.owlNamedIndividual, vX)).toOxRules());
-				store.importRules(new VRule(new VAtom(role, vX, vX), new VAtom(SWURIs.owlNamedIndividual, vX), new VAtom(roleToRoleSelfConcept(role), vX)).toOxRules());
+				store.importText(new VRule(new VAtom(roleToRoleSelfConcept(role), vX), new VAtom(role, vX, vX), new VAtom(SWURIs.owlNamedIndividual, vX)).toOxRules());
+				store.importText(new VRule(new VAtom(role, vX, vX), new VAtom(SWURIs.owlNamedIndividual, vX), new VAtom(roleToRoleSelfConcept(role), vX)).toOxRules());
 			}
 
 			for (String subRoleSelfRule : subRoleSelfRules)
-				store.importRules(subRoleSelfRule);
+				store.importText(subRoleSelfRule);
 		}
 
 		if (validOntology)
@@ -96,7 +96,7 @@ public class StoreInitializer {
 			return null;
 	}
 
-	private Object transformAxiomToRule(DataStore store, OWLAxiom axiom) throws JRDFStoreException {
+	private Object transformAxiomToRule(DataStore store, OWLAxiom axiom) throws JRDFoxException {
 		freshVarCounter = 0;
 		switch (axiom.getAxiomType().toString()) {
 
@@ -106,13 +106,13 @@ public class StoreInitializer {
 			for (int i = 0; i < equivConcepts.size(); i++)
 				for (int j = 0; j < equivConcepts.size(); j++)
 					if (i != j)
-						store.importRules(new VRule(expToAtoms(equivConcepts.get(i), vX, true), expToAtoms(equivConcepts.get(j), vX, false)).toOxRules());
+						store.importText(new VRule(expToAtoms(equivConcepts.get(i), vX, true), expToAtoms(equivConcepts.get(j), vX, false)).toOxRules());
 			break;
 
 		case "SubClassOf":
 			// C sqsubseteq D
 			OWLSubClassOfAxiom subClassOfAxiom = (OWLSubClassOfAxiom) axiom;
-			store.importRules(new VRule(expToAtoms(subClassOfAxiom.getSuperClass(), vX, true), expToAtoms(subClassOfAxiom.getSubClass(), vX, false)).toOxRules());
+			store.importText(new VRule(expToAtoms(subClassOfAxiom.getSuperClass(), vX, true), expToAtoms(subClassOfAxiom.getSubClass(), vX, false)).toOxRules());
 			break;
 
 		case "DisjointClasses":
@@ -123,34 +123,34 @@ public class StoreInitializer {
 					ArrayList<VAtom> bodyAtoms = new ArrayList<VAtom>();
 					bodyAtoms.addAll(expToAtoms(disjConcepts.get(i), vX, false));
 					bodyAtoms.addAll(expToAtoms(disjConcepts.get(j), vX, false));
-					store.importRules(new VRule(new VAtom(SWURIs.owlNothing, vX), bodyAtoms).toOxRules());
+					store.importText(new VRule(new VAtom(SWURIs.owlNothing, vX), bodyAtoms).toOxRules());
 				}
 			break;
 
 		case "ObjectPropertyDomain":
 			// dom(R) sqsubseteq D
 			OWLObjectPropertyDomainAxiom domainAxiom = (OWLObjectPropertyDomainAxiom) axiom;
-			store.importRules(new VRule(expToAtoms(domainAxiom.getDomain(), vX, true), new VAtom((OWLObjectProperty) domainAxiom.getProperty(), vX, vY)).toOxRules());
+			store.importText(new VRule(expToAtoms(domainAxiom.getDomain(), vX, true), new VAtom((OWLObjectProperty) domainAxiom.getProperty(), vX, vY)).toOxRules());
 			break;
 
 		case "ObjectPropertyRange":
 			// ran(R) sqsubseteq D
 			OWLObjectPropertyRangeAxiom rangeAxiom = (OWLObjectPropertyRangeAxiom) axiom;
-			store.importRules(new VRule(expToAtoms(rangeAxiom.getRange(), vY, true), new VAtom((OWLObjectProperty) rangeAxiom.getProperty(), vX, vY)).toOxRules());
+			store.importText(new VRule(expToAtoms(rangeAxiom.getRange(), vY, true), new VAtom((OWLObjectProperty) rangeAxiom.getProperty(), vX, vY)).toOxRules());
 			break;
 
 		case "ReflexiveObjectProperty":
 			// Ref(R)
 			OWLObjectProperty reflexiveRole = (OWLObjectProperty) ((OWLReflexiveObjectPropertyAxiom) axiom).getProperty();
 			String roleSelfConcept = roleToRoleSelfConcept(reflexiveRole);
-			store.importRules(new VRule(new VAtom(roleSelfConcept, vX), new VAtom(SWURIs.owlThing, vX)).toOxRules());
+			store.importText(new VRule(new VAtom(roleSelfConcept, vX), new VAtom(SWURIs.owlThing, vX)).toOxRules());
 			containsSelf = true;
 			break;
 
 		case "IrrefexiveObjectProperty":
 			// Irref(R)
 			OWLObjectProperty irreflexiveRole = (OWLObjectProperty) ((OWLIrreflexiveObjectPropertyAxiom) axiom).getProperty();
-			store.importRules(new VRule(new VAtom(SWURIs.owlNothing, vX), new VAtom(roleToRoleSelfConcept(irreflexiveRole), vX)).toOxRules());
+			store.importText(new VRule(new VAtom(SWURIs.owlNothing, vX), new VAtom(roleToRoleSelfConcept(irreflexiveRole), vX)).toOxRules());
 			containsSelf = true;
 			break;
 
@@ -163,7 +163,7 @@ public class StoreInitializer {
 					if (i != j) {
 						OWLObjectProperty objectRolei = (OWLObjectProperty) equivRoles.get(i);
 						OWLObjectProperty objectRolej = (OWLObjectProperty) equivRoles.get(j);
-						store.importRules(new VRule(new VAtom(objectRolei, vX, vY), new VAtom(objectRolej, vX, vY)).toOxRules());
+						store.importText(new VRule(new VAtom(objectRolei, vX, vY), new VAtom(objectRolej, vX, vY)).toOxRules());
 						subRoleSelfRules.add(new VRule(new VAtom(roleToRoleSelfConcept(objectRolei), vX), new VAtom(roleToRoleSelfConcept(objectRolej), vX)).toOxRules());
 					}
 			break;
@@ -173,7 +173,7 @@ public class StoreInitializer {
 			OWLSubObjectPropertyOfAxiom subObjectPropertyOfAxiom = (OWLSubObjectPropertyOfAxiom) axiom;
 			OWLObjectProperty superRole = (OWLObjectProperty) subObjectPropertyOfAxiom.getSuperProperty();
 			OWLObjectProperty subRole = (OWLObjectProperty) subObjectPropertyOfAxiom.getSubProperty();
-			store.importRules(new VRule(new VAtom(superRole, vX, vY), new VAtom(subRole, vX, vY)).toOxRules());
+			store.importText(new VRule(new VAtom(superRole, vX, vY), new VAtom(subRole, vX, vY)).toOxRules());
 			subRoleSelfRules.add(new VRule(new VAtom(roleToRoleSelfConcept(superRole), vX), new VAtom(roleToRoleSelfConcept(subRole), vX)).toOxRules());
 			break;
 
@@ -184,18 +184,19 @@ public class StoreInitializer {
 			ArrayList<VAtom> bodyAtoms = new ArrayList<VAtom>();
 			for (OWLObjectPropertyExpression chainedRole : roleChain)
 				bodyAtoms.add(new VAtom((OWLObjectProperty) chainedRole, vX + freshVarCounter, vX + ++freshVarCounter));
-			store.importRules(new VRule(new VAtom((OWLObjectProperty) chainOfAxiom.getSuperProperty(), vX + "0", vX + freshVarCounter), bodyAtoms).toOxRules());
+			store.importText(new VRule(new VAtom((OWLObjectProperty) chainOfAxiom.getSuperProperty(), vX + "0", vX + freshVarCounter), bodyAtoms).toOxRules());
 			break;
 
 		case "TransitiveObjectProperty":
 			// Tran(R)
 			String transitiveRoleR = ((OWLTransitiveObjectPropertyAxiom) axiom).getProperty().toString();
-			store.importRules(new VRule(new VAtom(transitiveRoleR, vX, vY), new VAtom(transitiveRoleR, vX, vZ), new VAtom(transitiveRoleR, vZ, vY)).toOxRules());
+			store.importText(new VRule(new VAtom(transitiveRoleR, vX, vY), new VAtom(transitiveRoleR, vX, vZ), new VAtom(transitiveRoleR, vZ, vY)).toOxRules());
 			break;
 
 		case "Rule":
 			// SWRL Rule
-			store.importRules(swrlRuleToRule((SWRLRule) axiom).toOxRules());
+			System.out.println(axiom);
+			store.importText(swrlRuleToRule((SWRLRule) axiom).toOxRules());
 			break;
 
 		case "ClassAssertion":
@@ -207,7 +208,7 @@ public class StoreInitializer {
 				if (classExpressionC.getClassExpressionType().equals(ClassExpressionType.OWL_CLASS))
 					store.addTriples(new VAtom((OWLClass) classExpressionC, individuala).toGroundTermFact());
 				else if (classExpressionC.getComplementNNF().getClassExpressionType().equals(ClassExpressionType.OWL_CLASS)) {
-					store.importRules(
+					store.importText(
 							new VRule(new VAtom(SWURIs.owlNothing, individuala), new VAtom((OWLClass) classExpressionC.getComplementNNF(), individuala)).toOxRules());
 				} else {
 					System.out.println("WARNING!!! Invalid ClassAssertion axiom at ELVNReasoner at ELVNReasoner.java." + "\n" + " > " + classAssertion + "\n" + " > "
@@ -226,7 +227,7 @@ public class StoreInitializer {
 		case "NegativeObjectPropertyAssertion":
 			// lnot R(a, b)
 			OWLNegativeObjectPropertyAssertionAxiom negativeRoleAssertion = (OWLNegativeObjectPropertyAssertionAxiom) axiom;
-			store.importRules(new VRule(new VAtom(SWURIs.owlNothing, negativeRoleAssertion.getSubject()),
+			store.importText(new VRule(new VAtom(SWURIs.owlNothing, negativeRoleAssertion.getSubject()),
 					new VAtom((OWLObjectProperty) negativeRoleAssertion.getProperty(), negativeRoleAssertion.getSubject(), negativeRoleAssertion.getObject()))
 							.toOxRules());
 			break;
@@ -247,7 +248,7 @@ public class StoreInitializer {
 			List<OWLIndividual> differentIndividualsList = differentIndividualAxiom.getIndividualsAsList();
 			for (int i = 0; i < differentIndividualsList.size(); i++)
 				for (int j = i + 1; j < differentIndividualsList.size(); j++)
-					store.importRules(new VRule(new VAtom(SWURIs.owlNothing, differentIndividualsList.get(i)),
+					store.importText(new VRule(new VAtom(SWURIs.owlNothing, differentIndividualsList.get(i)),
 							new VAtom(SWURIs.owlSameAs, differentIndividualsList.get(i), differentIndividualsList.get(j))).toOxRules());
 			break;
 
@@ -290,6 +291,9 @@ public class StoreInitializer {
 			body.add(new VAtom(safeBodyAtom, safeVarToXVarMap));
 		for (String variable : safeVarToXVarMap.values())
 			body.add(new VAtom(SWURIs.owlNamedIndividual, variable));
+
+		System.out.println(safeRule);
+		System.out.println(new VRule(head, body).toOxRules());
 
 		return new VRule(head, body);
 	}

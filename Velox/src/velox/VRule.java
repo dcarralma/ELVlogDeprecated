@@ -73,7 +73,7 @@ public class VRule {
 
 		String oxRule = new String("");
 		for (VAtom headAtom : head)
-			oxRule += headAtom.toOxAtom() + " :-  " + ruleBody + "." + "\n";
+			oxRule += headAtom.toOxAtom() + " :-  " + ruleBody + ".";
 
 		return oxRule;
 	}
