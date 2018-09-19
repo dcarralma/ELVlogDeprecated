@@ -54,17 +54,18 @@ public class Launcher {
 		// IRI.create(new
 		// File("/Users/carralma/Desktop/velox-evalution/files/tbox-files/2-normalised-tboxes/uniprot-normalised-el-tbox.owl")));
 
-		// System.out.println("Arguments: " + arguments[0] + " " + arguments[1] + " " +
-		// arguments[2] + " " + arguments[3] + "\n");
-		// int threads = Integer.parseInt(arguments[0]);
-		// String ontologyTBoxFilePath = arguments[1];
-		// String turtleDirPath = arguments[2];
-		// String prefix = arguments[3];
+		System.out.println("Arguments: " + arguments[0] + " " + arguments[1] + " " + arguments[2] + " " + arguments[3] + "\n");
+		int threads = Integer.parseInt(arguments[0]);
+		String ontologyTBoxFilePath = arguments[1];
+		String turtleDirPath = arguments[2];
+		String prefix = arguments[3];
 
-		int threads = 3;
-		String ontologyTBoxFilePath = "/Users/carralma/Desktop/velox-evalution/files/tbox-files/4-el-tboxes-SWRL-rules/lubm-normalised-el-swrl-tbox.owl";
-		String turtleDirPath = "/Users/carralma/Desktop/velox-evalution/files/ontology-files/lubm/velox/abox-folders/LUBM025";
-		String prefix = "pref";
+		// int threads = 3;
+		// String ontologyTBoxFilePath =
+		// "/Users/carralma/Desktop/velox-evalution/files/tbox-files/4-el-tboxes-SWRL-rules/lubm-normalised-el-swrl-tbox.owl";
+		// String turtleDirPath =
+		// "/Users/carralma/Desktop/velox-evalution/files/ontology-files/lubm/velox/abox-folders/LUBM025";
+		// String prefix = "pref";
 
 		ArrayList<String> turtleFileNames = new ArrayList<String>();
 		for (String turtleFileName : new File(turtleDirPath).list())
@@ -85,25 +86,17 @@ public class Launcher {
 		System.out.println(" * Satisfiable ontology: " + velox.isSatisfiable());
 		System.out.println(" * Materialization Complete (" + velox.getTriplesCount() + "): " + ((System.nanoTime() - start) / 1000000000) + "s");
 
-		// String rdfType = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
-		// System.out.println(" > Query Results: " + size(velox.getIterator("SELECT
-		// DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query1> } ")) + " / "
-		// + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" +
-		// prefix + "#Query2> } ")) + " / "
-		// + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" +
-		// prefix + "#Query3> } ")) + " / "
-		// + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" +
-		// prefix + "#Query4> } ")) + " / "
-		// + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" +
-		// prefix + "#Query5> } ")) + " / "
-		// + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" +
-		// prefix + "#Query6> } ")) + " / "
-		// + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" +
-		// prefix + "#Query7> } ")) + " / "
-		// + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" +
-		// prefix + "#Query8> } ")));
-		//
-		// System.out.println("\n");
+		String rdfType = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+		System.out.println(" > Query Results: " + size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query1> } ")) + " / "
+				+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query2> } ")) + " / "
+				+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query3> } ")) + " / "
+				+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query4> } ")) + " / "
+				+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query5> } ")) + " / "
+				+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query6> } ")) + " / "
+				+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query7> } ")) + " / "
+				+ size(velox.getIterator("SELECT DISTINCT ?x WHERE{ ?x " + rdfType + " <" + prefix + "#Query8> } ")));
+
+		System.out.println("\n");
 	}
 
 	private static int size(TupleIterator tupleIterator) throws JRDFoxException {
