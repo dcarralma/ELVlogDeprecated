@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
+import elvlog.VeloxReasoner;
 import uk.ac.ox.cs.JRDFox.JRDFoxException;
 import uk.ac.ox.cs.JRDFox.store.DataStore;
 import uk.ac.ox.cs.JRDFox.store.TupleIterator;
-import velox.VeloxReasoner;
 
 public class Launcher {
 

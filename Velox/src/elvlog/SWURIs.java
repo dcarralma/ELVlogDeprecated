@@ -1,4 +1,4 @@
-package velox;
+package elvlog;
 
 public class SWURIs {
 	protected static String owlThing = "<http://www.w3.org/2002/07/owl#Thing>";
